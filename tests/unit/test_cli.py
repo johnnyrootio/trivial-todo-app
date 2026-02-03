@@ -1,8 +1,6 @@
 """Unit tests for CLI error handling paths."""
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from trivial_todo_app.cli import add, done, list, main
 from trivial_todo_app.todo import Todo
