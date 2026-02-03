@@ -180,6 +180,6 @@ def test_commands_accept_correct_argument_types() -> None:
     result = run_todo_command("list")
     assert result.returncode == 0
 
-    # Test done accepts integer
-    result = run_todo_command("done", "42")
+    # Test done accepts integer (using ID 1 which was just created)
+    result = run_todo_command("done", "1")
     assert result.returncode == 0
