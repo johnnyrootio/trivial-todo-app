@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/trivial-todo-app/schemas/data-schema.json",
+  "title": "Trivial Todo App Data Schema",
+  "description": "JSON Schema for the todos.json storage file format. Defines the structure for persisting todo items in the Trivial Todo App.",
+  "version": "1.0",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/todo"
+  },
+  "uniqueItems": true,
+  "$defs": {
+    "todo": {
+      "type": "object",
+      "description": "A single todo item with unique ID, title, and completion status",
+      "required": [
+        "id",
+        "title",
+        "done"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Unique identifier for the todo item. Auto-generated sequentially starting from 1.",
+          "minimum": 1,
+          "examples": [
+            1,
+            2,
+            42
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "The todo item description. Cannot be empty or whitespace-only.",
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "examples": [
+            "Buy groceries",
+            "Walk the dog",
+            "Read a book"
+          ]
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Completion status. False for pending todos, true for completed todos.",
+          "default": false,
+          "examples": [
+            false,
+            true
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    [],
+    [
+      {
+        "id": 1,
+        "title": "Buy groceries",
+        "done": false
+      }
+    ],
+    [
+      {
+        "id": 1,
+        "title": "Buy groceries",
+        "done": false
+      },
+      {
+        "id": 2,
+        "title": "Walk the dog",
+        "done": true
+      },
+      {
+        "id": 3,
+        "title": "Read a book",
+        "done": false
+      }
+    ]
+  ],
+  "metadata": {
+    "project": "Trivial Todo App",
+    "last_updated": "2026-02-02",
+    "specification_reference": "docs/operational-specification.md#storage-specification",
+    "file_location": "todos.json",
+    "persistence_strategy": "atomic_write",
+    "concurrency_model": "single_user_single_process"
+  }
+}
