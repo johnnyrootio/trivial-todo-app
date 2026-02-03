@@ -14,9 +14,7 @@ class TestAddCommandErrorHandling:
     @patch("trivial_todo_app.cli.typer.echo")
     @patch("trivial_todo_app.cli.TodoManager")
     @patch("trivial_todo_app.cli.TodoStorage")
-    def test_add_successfully_adds_todo(
-        self, mock_storage_class, mock_manager_class, mock_echo
-    ):
+    def test_add_successfully_adds_todo(self, mock_storage_class, mock_manager_class, mock_echo):
         """Add command successfully adds a todo and displays success message."""
         # Setup: manager.add returns a new todo
         mock_manager = Mock()
@@ -67,9 +65,7 @@ class TestAddCommandErrorHandling:
         add("Test todo")
 
         # Verify error was echoed to stderr and exit(1) was called
-        mock_echo.assert_called_once_with(
-            "Error: Failed to save todo: Permission denied", err=True
-        )
+        mock_echo.assert_called_once_with("Error: Failed to save todo: Permission denied", err=True)
         mock_exit.assert_called_once_with(1)
 
 
@@ -217,9 +213,7 @@ class TestDoneCommandErrorHandling:
         """Done command handles generic Exception from storage and exits with code 1."""
         # Setup: manager.mark_done raises generic exception (e.g., I/O error)
         mock_manager = Mock()
-        mock_manager.list_all.return_value = [
-            Todo(id=1, title="Test", done=False)
-        ]
+        mock_manager.list_all.return_value = [Todo(id=1, title="Test", done=False)]
         mock_manager.mark_done.side_effect = OSError("Disk full")
         mock_manager_class.return_value = mock_manager
 
@@ -227,9 +221,7 @@ class TestDoneCommandErrorHandling:
         done(1)
 
         # Verify error was echoed to stderr and exit(1) was called
-        mock_echo.assert_called_once_with(
-            "Error: Failed to save todo: Disk full", err=True
-        )
+        mock_echo.assert_called_once_with("Error: Failed to save todo: Disk full", err=True)
         mock_exit.assert_called_once_with(1)
 
 
