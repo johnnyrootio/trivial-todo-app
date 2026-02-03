@@ -1,0 +1,201 @@
+# CLI Commands Interface Contract
+# Project: Trivial Todo App
+# Version: 1.0
+# Last Updated: 2026-02-02
+#
+# This contract defines the interface specifications for all CLI commands
+# in the Trivial Todo App, based on docs/operational-specification.md
+
+meta:
+  framework: Typer
+  entry_point: todo
+  exit_codes:
+    success: 0
+    error: 1
+  output:
+    success_stream: stdout
+    error_stream: stderr
+    color_support: false
+    progress_indicators: false
+
+commands:
+  add:
+    description: Adds a new todo item with the specified title
+
+    syntax: "todo add \"<title>\""
+
+    parameters:
+      - name: title
+        type: string
+        required: true
+        description: The title of the todo item
+        validation:
+          - rule: non_empty
+            error_message: "Title cannot be empty"
+          - rule: not_whitespace_only
+            error_message: "Title cannot be empty"
+
+    behavior:
+      steps:
+        - Load existing todos from storage
+        - Generate next sequential ID (max existing ID + 1, or 1 if empty)
+        - Create new Todo object with generated ID, provided title, and done=False
+        - Append new todo to the list
+        - Save updated list to storage
+        - Display confirmation message with the new todo's ID
+
+    output:
+      success:
+        format: "Added todo #<id>: \"<title>\""
+        stream: stdout
+        example: "Added todo #1: \"Buy groceries\""
+
+      errors:
+        - condition: empty_title
+          message: "Error: Title cannot be empty"
+          stream: stderr
+          exit_code: 1
+
+        - condition: storage_write_failure
+          message: "Error: Failed to save todo: <reason>"
+          stream: stderr
+          exit_code: 1
+
+    examples:
+      - command: 'todo add "Buy groceries"'
+        output: 'Added todo #1: "Buy groceries"'
+        description: Add a new todo item
+
+  list:
+    description: Lists all todo items with their status
+
+    syntax: "todo list"
+
+    parameters: []
+
+    behavior:
+      steps:
+        - Load todos from storage
+        - If empty, display "No todos found"
+        - Otherwise, display each todo with ID, status, and title
+        - Sort by ID ascending
+
+    output:
+      success:
+        format: "[<status>] #<id>: <title>"
+        status_indicators:
+          completed: "✓"
+          incomplete: " "
+        stream: stdout
+        examples:
+          with_todos: |
+            [ ] #1: Buy groceries
+            [✓] #2: Walk the dog
+            [ ] #3: Read a book
+          empty: "No todos found"
+
+      errors:
+        - condition: storage_read_failure
+          message: "Error: Failed to load todos: <reason>"
+          stream: stderr
+          exit_code: 1
+
+    examples:
+      - command: "todo list"
+        output: |
+          [ ] #1: Buy groceries
+          [ ] #2: Walk the dog
+        description: List all todos
+
+      - command: "todo list"
+        output: "No todos found"
+        description: List when no todos exist
+
+  done:
+    description: Marks a todo item as completed
+
+    syntax: "todo done <id>"
+
+    parameters:
+      - name: id
+        type: integer
+        required: true
+        description: The ID of the todo to mark as done
+        validation:
+          - rule: positive_integer
+            error_message: "Invalid todo ID: must be a positive integer"
+          - rule: exists_in_list
+            error_message: "Todo #<id> not found"
+
+    behavior:
+      steps:
+        - Load existing todos from storage
+        - Find todo with matching ID
+        - If not found, display error
+        - If already done, display informational message
+        - Set done=True for the todo
+        - Save updated list to storage
+        - Display confirmation message
+
+    output:
+      success:
+        format: "Marked todo #<id> as done: \"<title>\""
+        stream: stdout
+        example: 'Marked todo #1 as done: "Buy groceries"'
+
+      info:
+        already_done:
+          format: "Todo #<id> is already done"
+          stream: stdout
+          example: "Todo #1 is already done"
+
+      errors:
+        - condition: invalid_id_format
+          message: "Error: Invalid todo ID: must be a positive integer"
+          stream: stderr
+          exit_code: 1
+
+        - condition: todo_not_found
+          message: "Error: Todo #<id> not found"
+          stream: stderr
+          exit_code: 1
+
+        - condition: storage_write_failure
+          message: "Error: Failed to save todo: <reason>"
+          stream: stderr
+          exit_code: 1
+
+    examples:
+      - command: "todo done 1"
+        output: 'Marked todo #1 as done: "Buy groceries"'
+        description: Mark a todo as completed
+
+      - command: "todo done 1"
+        output: "Todo #1 is already done"
+        description: Attempt to mark already-completed todo
+
+      - command: "todo done 999"
+        output: "Error: Todo #999 not found"
+        description: Attempt to mark non-existent todo
+
+common:
+  help:
+    command: "todo --help"
+    description: Shows usage information for all commands
+
+  error_format:
+    pattern: "Error: <brief description>"
+    examples:
+      - "Error: Title cannot be empty"
+      - "Error: Todo #5 not found"
+      - "Error: Failed to save todo: Permission denied"
+
+  validation_rules:
+    title:
+      - Must not be empty string
+      - Must not be only whitespace
+      - No maximum length (practical limit: terminal width)
+
+    id:
+      - Must be positive integer
+      - Must exist in current todo list
