@@ -11,9 +11,8 @@ for CLI testing with real file I/O.
 """
 
 import json
-import os
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 from typer.testing import CliRunner
@@ -73,7 +72,7 @@ class TestFullFlow:
         assert todo_file.exists(), "todos.json should be created"
 
         # Verify file contents
-        with open(todo_file, "r") as f:
+        with open(todo_file) as f:
             todos_data = json.load(f)
         assert len(todos_data) == 1
         assert todos_data[0]["id"] == 1
@@ -109,7 +108,7 @@ class TestFullFlow:
         todo_file = temp_todo_dir / "todos.json"
         assert todo_file.exists()
 
-        with open(todo_file, "r") as f:
+        with open(todo_file) as f:
             todos_data = json.load(f)
         assert len(todos_data) == 3
         assert todos_data[0]["title"] == "Buy groceries"
@@ -145,7 +144,7 @@ class TestFullFlow:
 
         # Verify file shows done=true
         todo_file = temp_todo_dir / "todos.json"
-        with open(todo_file, "r") as f:
+        with open(todo_file) as f:
             todos_data = json.load(f)
         assert todos_data[0]["done"] is True
 
@@ -154,9 +153,7 @@ class TestFullFlow:
         assert result.exit_code == 0
         assert "[✓] #1: Buy groceries" in result.stdout
 
-    def test_list_empty_when_no_todos(
-        self, temp_todo_dir: Path, cli_runner: CliRunner
-    ) -> None:
+    def test_list_empty_when_no_todos(self, temp_todo_dir: Path, cli_runner: CliRunner) -> None:
         """Listing when no todos exist should show 'No todos found'.
 
         Flow:
@@ -172,13 +169,11 @@ class TestFullFlow:
         todo_file = temp_todo_dir / "todos.json"
         # Either file doesn't exist, or exists and is empty
         if todo_file.exists():
-            with open(todo_file, "r") as f:
+            with open(todo_file) as f:
                 content = f.read()
             assert content in ("", "[]")
 
-    def test_persistence_across_commands(
-        self, temp_todo_dir: Path, cli_runner: CliRunner
-    ) -> None:
+    def test_persistence_across_commands(self, temp_todo_dir: Path, cli_runner: CliRunner) -> None:
         """Todos should persist across separate CLI invocations.
 
         Flow:
@@ -202,6 +197,6 @@ class TestFullFlow:
 
         # Verify file has both
         todo_file = temp_todo_dir / "todos.json"
-        with open(todo_file, "r") as f:
+        with open(todo_file) as f:
             todos_data = json.load(f)
         assert len(todos_data) == 2
