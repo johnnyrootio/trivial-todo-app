@@ -4,8 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from trivial_todo_app.storage import TodoStorage
 from trivial_todo_app.todo import Todo
 
